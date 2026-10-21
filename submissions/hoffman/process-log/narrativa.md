@@ -30,3 +30,7 @@
 ## Iterações
 
 Várias rodadas para enxugar escopo (dois scripts, sem dashboard), refinar combinações n≥20, e validar README ↔ output dos comandos.
+
+## Iteração final
+
+Comparei PRs abertos do Challenge 002 no repositório oficial e mantive a arquitetura mínima (dois scripts CLI). Reforcei o que os melhores candidatos fazem sem inflar escopo: bloco **Qualidade Dataset 1** em `diagnostico.py` (timestamps, fila sem FRT, R² de CSAT), métrica de **política de roteamento** no `prototipo.py treinar` (% auto vs humana e acurácia no auto), README em **Camada A/B**, exemplos textuais reais para o que não automatizar, e evidência via histórico do [PR #209](https://github.com/Gestao-Quatro-Ponto-Zero/ai-master-challenge/pull/209).

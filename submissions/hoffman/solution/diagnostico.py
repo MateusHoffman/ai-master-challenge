@@ -39,11 +39,26 @@ def main() -> None:
         f"pós-FRT cronológico (≥0 h): {n_valid:,}".replace(",", ".")
     )
 
+    phys_lines = sum(1 for _ in open(CSV1, encoding="utf-8", errors="replace")) - 1
+    closed_both = df.loc[both_ts, "post_frt_h"]
+    pct_inv = 100 * (closed_both < 0).sum() / n_closed_ts if n_closed_ts else 0
+    pct_le0 = 100 * (closed_both <= 0).sum() / n_closed_ts if n_closed_ts else 0
+    open_pending = df["Ticket Status"].isin(["Open", "Pending Customer Response"])
+    frt = pd.to_datetime(df["First Response Time"], errors="coerce")
+    sem_frt_abertos = int((open_pending & frt.isna()).sum())
+
+    print("\n--- Qualidade Dataset 1 (leia antes dos gargalos) ---")
+    print(
+        f"Registros (pandas): {n:,} | linhas físicas CSV (multiline em texto): {phys_lines:,}".replace(",", ".")
+    )
+    print(f"Fechados: {pct_inv:.1f}% timestamps invertidos (pós-FRT < 0) | {pct_le0:.1f}% resolução ≤ 1ª resposta")
+    print(f"Open/Pending sem First Response Time: {sem_frt_abertos} (backlog sem resposta registrada)")
+
     p50 = t["post_frt_h"].median()
     p90 = t["post_frt_h"].quantile(0.9)
-    print(f"Pós-FRT global — mediana: {fmt_h(p50)} h | p90: {fmt_h(p90)} h")
+    print(f"Pós-FRT global — mediana: {fmt_h(p50)} h | p90: {fmt_h(p90)} h (recorte ≥0 h; exploratório)")
 
-    print("\n--- Onde o fluxo trava? (média pós-FRT h) ---")
+    print("\n--- Onde o fluxo trava? (média pós-FRT h; exploratório) ---")
     for col in ("Ticket Channel", "Ticket Priority", "Ticket Type"):
         g = t.groupby(col)["post_frt_h"].mean().sort_values(ascending=False)
         parts = [f"{k} ({fmt_h(v)})" for k, v in g.items()]
@@ -84,7 +99,9 @@ def main() -> None:
     )
     y = drivers["Customer Satisfaction Rating"].values
     reg = LinearRegression().fit(X, y)
+    r2 = reg.score(X, y)
     coef = pd.Series(reg.coef_, index=X.columns).abs().sort_values(ascending=False)
+    print(f"Regressão CSAT (canal/tipo/prioridade): R² = {r2:.3f}")
     print("Top drivers CSAT (|coef| regressão linear, dummies; escala: pontos CSAT):")
     for name, c in coef.head(3).items():
         sign = reg.coef_[X.columns.get_loc(name)]
